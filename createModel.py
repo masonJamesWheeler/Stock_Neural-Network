@@ -36,8 +36,8 @@ def createModels (stockName):
     modes.append(thirty_day)
 
     print("starting machine learning on " + stockName)
-    ACCURACY_THRESHOLD = 0.999
-    LOSS_THRESHOLD = 0.002
+    ACCURACY_THRESHOLD = 1.00
+    LOSS_THRESHOLD = 0.0001
 
 
     #  for each stock in stocks
@@ -58,7 +58,7 @@ def createModels (stockName):
             callbacks = callback(ACCURACY_THRESHOLD, LOSS_THRESHOLD, stock)
 
             model = neural_network(X.shape[1])
-            model.fit(X_train, y_train, epochs=3000, batch_size=256, validation_data=(X_train, y_train), callbacks=[callbacks])
+            model.fit(X_train, y_train, epochs=30000, batch_size=256, validation_data=(X_train, y_train), callbacks=[callbacks])
             y_pred = model.predict(X_train)
             y_pred = np.round(y_pred)
             conf_mat = confusion_matrix(y_train, y_pred)
@@ -67,9 +67,9 @@ def createModels (stockName):
             # the model that will predict the FutureUp probability
             y2 = y[:, 1]
 
-            X_train, X_test, y2_train, y2_test = train_test_split(X, y2, test_size=0.03, random_state=42)
+            X_train, X_test, y2_train, y2_test = train_test_split(X, y2, test_size=0.01, random_state=42)
             model2 = neural_network(X.shape[1])
-            model2.fit(X_train, y2_train, batch_size=256, validation_data=(X_train, y2_train), epochs=3000, callbacks=[callbacks])
+            model2.fit(X_train, y2_train, batch_size=256, validation_data=(X_train, y2_train), epochs=30000, callbacks=[callbacks])
 
             y2_pred = model2.predict(X_train)
             y2_pred = np.round(y2_pred)

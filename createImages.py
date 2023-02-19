@@ -119,7 +119,7 @@ def createImage(stockName):
         data2 = scaler.fit_transform(data)
 
         # make x all the columns except first column
-        X = pd.DataFrame(data2[:, 1:])
+        X = pd.DataFrame(data2)
 
         # code to load the models and then run it on the current data
         model3dayReversal = tf.keras.models.load_model("models/" + stock + '3dayReversal.h5')
@@ -147,7 +147,7 @@ def createImage(stockName):
         data["non-normalized_Adj_Close"] = stockdata['Adj Close']
         # reset matplotlib to default
         plt.style.use('ggplot')
-        current = plt.figure(figsize=(20, 10), dpi=800)
+        current = plt.figure(figsize=(20, 10), dpi=500)
         # plot the actual stock price
         plt.plot(data[-365:]['non-normalized_Adj_Close'], label='Price', color='#1e40af')
         # set the size of the bubbles by changing the params in the scatter function

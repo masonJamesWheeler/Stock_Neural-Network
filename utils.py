@@ -20,7 +20,9 @@ import sys
 def getStockData(stock, mode):
     startdate = datetime(1980, 1, 1)
     currentdate = datetime.now()
-    enddate = datetime(currentdate.year, currentdate.month, currentdate.day)
+    # end date should be 07/01/2022
+    enddate = datetime(2022, 7, 1)
+    # enddate = datetime(currentdate.year, currentdate.month, currentdate.day)
     data = pdr.get_data_yahoo("^GSPC", start=startdate, end=enddate)
     #  get the VIX data
     vix = pdr.get_data_yahoo("^VIX", start=startdate, end=enddate)
