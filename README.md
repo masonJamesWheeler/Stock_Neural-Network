@@ -10,6 +10,7 @@ euphoria and fear in the market, through various technical indicators mainly: de
 Further, the program attacks a problem that is largely overlooked traditionally in stock models: overfitting on past data.
 We solve this by making fast random shuffles to the data forcing the model to be nimble and non-biased. 
 
+![AMZN 2 21 2023](https://user-images.githubusercontent.com/106849824/220750417-7ba02a03-3153-4fd8-a73b-e84e865ae666.png)
 
 Files:
 
