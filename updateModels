@@ -1,0 +1,7 @@
+#!/bin/bash
+input="stocklist.txt"
+while IFS= read -r line
+do
+  python createModel.py learn $line
+  python createImages.py $line
+done < "$input"
