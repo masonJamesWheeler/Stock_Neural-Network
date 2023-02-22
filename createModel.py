@@ -1,24 +1,21 @@
 import sys
-from time import sleep
-from random import random
-from multiprocessing import Pool
-from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import MinMaxScaler
 
-from pandas_datareader import data as pdr
-import yfinance as yf
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas_ta as ta
+import yfinance as yf
+from matplotlib import pyplot as plt
+from pandas_datareader import data as pdr
+
 yf.pdr_override()
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
-from sklearn.metrics import confusion_matrix, accuracy_score
-from datetime import datetime, timedelta
+from sklearn.metrics import confusion_matrix
+from datetime import datetime
 import pandas as pd
 # import functions from utils.py
-from utils import getStockData, neural_network, callback
+from utils import getStockData, neural_network, callback, early_stop
+from createImages import createImage
 
 def createModels (stockName):
     # added code 02/16/23
@@ -28,60 +25,57 @@ def createModels (stockName):
     five_day = [5, 0.065]
     seven_day = [7, 0.08]
     ten_day = [10, 0.12]
-    thirty_day = [30, 0.165]
+    twentyone_day = [21, 0.15]
     modes.append(three_day)
     modes.append(five_day)
     modes.append(seven_day)
     modes.append(ten_day)
-    modes.append(thirty_day)
+    modes.append(twentyone_day)
 
     print("starting machine learning on " + stockName)
     ACCURACY_THRESHOLD = 1.00
-    LOSS_THRESHOLD = 0.0001
-
+    LOSS_THRESHOLD = 0.01
 
     #  for each stock in stocks
     stocks = [stockName]
     for stock in stocks:
         for mode in modes:
-            # get the data for the stock
-            data = getStockData(stock, mode)
+            for i in range(0, 10):
+                bestModel = tf.keras.callbacks.ModelCheckpoint('models/' + str(stock) + str(mode[0]) + 'dayBull.h5', monitor='val_accuracy', mode='max',save_best_only=True)
+                # get the data for the stock
+                X, y1, y2 = getStockData(stock, mode)
 
-            # make X every value but the last 2
-            X = data[:, :-2]
-            y = data[:, -2:]
-            # make training values with last of y's column
-            y1 = y[:, 0]
-            # print the name of columns of X and y
-            X_train, X_test, y_train, y_test = train_test_split(X, y1, test_size=0.03, random_state=42)
+                # print the name of columns of X and y
+                # generate a random number between 1-50
+                rand = np.random.randint(1, 50)
 
-            callbacks = callback(ACCURACY_THRESHOLD, LOSS_THRESHOLD, stock)
+                X_train, X_test, y_train, y_test = train_test_split(X, y1, test_size=0.8, random_state=rand)
+                callbacks = callback(ACCURACY_THRESHOLD, LOSS_THRESHOLD, stock)
+                # if the model exists at the path then load the model and add the callback
+                try:
+                    model = tf.keras.models.load_model('models/' + str(stock) + str(mode[0]) + 'dayBull.h5')
+                    print("model loaded " + str(stock) + str(mode[0]) + 'dayBull.h5')
+                except:
+                    model = neural_network(X.shape[1])
+                model.fit(X_train, y_train, epochs=5, batch_size=256, validation_data=(X_test, y_test), callbacks=[callbacks, bestModel])
+                # make the model the best model
 
-            model = neural_network(X.shape[1])
-            model.fit(X_train, y_train, epochs=30000, batch_size=256, validation_data=(X_train, y_train), callbacks=[callbacks])
-            y_pred = model.predict(X_train)
-            y_pred = np.round(y_pred)
-            conf_mat = confusion_matrix(y_train, y_pred)
-            print (conf_mat)
+                bestModel = tf.keras.callbacks.ModelCheckpoint('models/' + str(stock) + str(mode[0]) + 'dayReversal.h5' ,monitor='val_accuracy', mode='max', save_best_only=True)
 
-            # the model that will predict the FutureUp probability
-            y2 = y[:, 1]
+                X_train, X_test, y2_train, y2_test = train_test_split(X, y2, test_size=0.8, random_state=rand)
+                try:
+                    model2 = tf.keras.models.load_model('models/' + str(stock) + str(mode[0]) + 'dayReversal.h5')
+                    print("model loaded" + str(stock) + str(mode[0]) + 'dayReversal.h5')
+                except:
+                    model2 = neural_network(X.shape[1])
+                model2.fit(X_train, y2_train, batch_size=256, validation_data=(X_test, y2_test), epochs=5, callbacks=[callbacks, bestModel])
 
-            X_train, X_test, y2_train, y2_test = train_test_split(X, y2, test_size=0.01, random_state=42)
-            model2 = neural_network(X.shape[1])
-            model2.fit(X_train, y2_train, batch_size=256, validation_data=(X_train, y2_train), epochs=30000, callbacks=[callbacks])
-
-            y2_pred = model2.predict(X_train)
-            y2_pred = np.round(y2_pred)
-            conf_mat = confusion_matrix(y2_train, y2_pred)
-            print (conf_mat)
-
-            # change the int value to a string
-
-            model.save("models/" + stock + str(mode[0]) + 'dayBull.h5')
-            model2.save("models/" + stock + str(mode[0]) + 'dayReversal.h5')
-            data = []
+                data = []
             print("FINISHED " + stock + " " + str(mode[0]) + " day model")
+
+#       make the images
+        createImage(stock)
+
 
 def predictPrice(stock):
     # SET ACCURACY THERESHOLD
@@ -212,8 +206,8 @@ def predictPrice(stock):
     data['7dayBull'] = model7dayBull.predict(X)
     data['10dayReversal'] = model10dayReversal.predict(X)
     data['10dayBull'] = model10dayBull.predict(X)
-    data['30dayReversal'] = model30dayReversal.predict(X)
-    data['30dayBull'] = model30dayBull.predict(X)
+    data['21dayReversal'] = model30dayReversal.predict(X)
+    data['21dayBull'] = model30dayBull.predict(X)
     data = data.dropna()
     data3 = MinMaxScaler().fit_transform(data)
     data['FuturePrice'] = stockdata['FuturePrice']
@@ -246,14 +240,59 @@ def predictPrice(stock):
 
     model.fit(X_train, y_train, epochs=3000, batch_size=256, validation_data=(X_train, y_train), callbacks=[callbacks])
 
+# create megamodel
+def createMegamodel():
+    stocks = ["AAPL", "AMZN", "GOOGL", "MSFT", "NFLX", "TSLA", "NVDA", "PYPL", "ADBE", "INTC", "CSCO", "CMCSA", "PEP", "AVGO", "QCOM", "TXN", "COST", "AMGN", "AMAT", "INTU", "GILD", "ADP", "MU", "BKNG", "MDLZ", "FISV", "SBUX", "BIIB", "CHTR", "ISRG", "ILMN", "JD", "MELI", "MNST", "NEE", "NXPI", "ORLY", "PCAR", "REGN", "ROST", "SIRI",
+              "SNPS", "TMUS", "VRTX", "WBA", "WDAY", "XEL", "ZM"]
+    totaldata = pd.DataFrame()
+    modes = []
+    three_day = [3, 0.035]
+    five_day = [5, 0.065]
+    seven_day = [7, 0.08]
+    ten_day = [10, 0.12]
+    twentyone_day = [21, 0.15]
+    modes.append(three_day)
+    modes.append(five_day)
+    modes.append(seven_day)
+    modes.append(ten_day)
+    modes.append(twentyone_day)
+#     iterate through the stocks and conctenate the data into one dataframe
+    for mode in modes:
+        for stock in stocks:
+            currdata = getStockData(stock, mode)
+            # turn currdata into a dataframe
+            currdata = pd.DataFrame(currdata)
+            totaldata = pd.concat([totaldata, currdata])
+        totaldata = totaldata.dropna()
+        scaler = MinMaxScaler()
+        data2 = scaler.fit_transform(totaldata)
+        # make x all the columns except first column and the last column
+        X = pd.DataFrame(data2[:, 1:-1])
+        # make the y the last column
+        y = pd.DataFrame(data2[:, -1])
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.03, random_state=42)
+        model = neural_network(X.shape[1])
+        model.fit(X_train, y_train, epochs=100, batch_size=128, validation_data=(X_test, y_test))
+        model.save("models/" + "mega" + str(mode[0]) + "day.h5")
+
+
+    # make x all the columns except first column and the last column
+
+
+
+
 if __name__ == '__main__':
     # load the args
     args = sys.argv[1:]
     # first arg is the mode (create or retrain)
     mode = args[0]
-    # second arg is the stock name
-    stockname = args[1]
-    if mode == 'learn':
-        createModels(stockname)
+    # if args < 2 then run megamodel
+    if len(args) < 2:
+        createMegamodel()
     else:
-        print("Invalid mode")
+        # second arg is the stock name
+        stockname = args[1]
+        if mode == 'learn':
+            createModels(stockname)
+        else:
+            print("Invalid mode")
