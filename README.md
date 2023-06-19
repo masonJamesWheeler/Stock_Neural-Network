@@ -1,51 +1,77 @@
-Stock Prediction Neural Network
+# Stock Prediction Neural Network
 
-This program implements a neural network to make predictions on stock prices. The neural network is trained on historical stock data and uses a variety of technical indicators to predict future stock prices. The program consists of several files that perform different functions:
+## Table of Contents
 
-Concept:
+1. [Introduction](#Introduction)
+2. [Concept](#Concept)
+3. [Directory Structure](#Directory-Structure)
+4. [Usage](#Usage)
+5. [Disclaimer](#Disclaimer)
+6. [Contact](#Contact)
 
-The larger concept of this program is that while past stock patterns are not a guarantee of future stock movements,
-there are psychological factors which lead to certain volatile movements. This program seeks to recognize situations of 
-euphoria and fear in the market, through various technical indicators mainly: derivatives of more common indicators. And predict the future stock price based on these.
-Further, the program attacks a problem that is largely overlooked traditionally in stock models: overfitting on past data.
-We solve this by making fast random shuffles to the data forcing the model to be nimble and non-biased. 
+## Introduction
+
+Welcome to the Stock Prediction Neural Network project. This program utilizes a neural network trained on historical stock data, incorporating various technical indicators to predict future stock prices. By identifying market euphoria and fear instances, it offers an innovative approach to predict stock market movements.
+
+## Concept
+
+While past stock patterns can't guarantee future stock movements, psychological factors can trigger certain volatile market movements. This program identifies these situations of market euphoria and fear using various technical indicators, derivatives of more common indicators mainly, and predicts future stock prices based on these. This project also addresses an often overlooked problem in traditional stock models - overfitting on past data, by incorporating random data shuffles to ensure the model's adaptability and non-biased nature.
 
 ![AMZN 2 21 2023](https://user-images.githubusercontent.com/106849824/220750417-7ba02a03-3153-4fd8-a73b-e84e865ae666.png)
 
-Files:
+## Directory Structure
 
-createModel.py: This file defines the architecture of the neural network and trains it on the preprocessed data that is fetched through the utility functions in utils.py.
+The project directory structure:
 
-createImages.py: After creation of the neural network, this file is used to create the output images for the user to see the predictions made by the neural network.
+```
+.
+├── createModel.py
+├── createImages.py
+├── smaModel.py
+├── utils.py
+├── stocklist.txt
+├── updateModels
+└── runimages
+```
 
-smaModel.py: This file defines a different kind of prediction model where the neural network is used to create a forward projection of the Simple Moving Average (SMA) of the stock price. This model is used to compare the performance of the neural network to a simpler model.
+- `createModel.py`: Defines the neural network architecture and trains it on preprocessed data.
+- `createImages.py`: Generates output images based on the neural network's predictions.
+- `smaModel.py`: Defines an SMA-based prediction model for performance comparison.
+- `utils.py`: Contains utility functions used by other files, such as stock data retrieval and preprocessing.
+- `stocklist.txt`: A user-adjustable list of stock symbols serving as the neural network's training input.
+- `updateModels`: A shell script for updating stock data and re-training the neural network.
+- `runimages`: A shell script for pre-processing historical stock data and creating output images.
 
-utils.py: This file contains utility functions used by the other files. notably the functions of retrieving stock data from Yahoo Finance and preprocessing the data. As well as setting thresholds for the models predictions based on adjustable p-values.
+## Usage
 
-stocklist.txt: This file contains a list of stock symbols that are adjustable by the user. The neural network is trained on the stock data of these symbols and serves as an input for the automated shell scripts.
+To use the program:
 
-updateModels: This shell script updates the stock data to the most recent data and re-trains the neural network on the updated data.
+1. Clone the repository.
+```bash
+git clone <repository_link>
+```
+2. Install the dependencies.
+```bash
+pip install -r requirements.txt
+```
+3. Update `stocklist.txt` with your preferred stock symbols.
+4. Run the `updateModels` shell script.
+```bash
+./updateModels
+```
+5. Run the `runimages` shell script.
+```bash
+./runimages
+```
+6. Run `createModel.py`.
+```bash
+python createModel.py learn <symbol>
+```
+7. (Optional) Run `smaModel.py` for SMA-based model performance comparison.
+```bash
+python smaModel.py sma <symbol>
+```
 
-runimages: This shell script runs the pre-processing of the historical stock data and creates the output images for the user to see the predictions made by the neural network.
+## Disclaimer
 
-Usage
-To use the program, follow these steps:
-
-Clone the repository to your local machine.
-
-Install the required dependencies by running pip install -r requirements.txt.
-
-Update the stocklist.txt file with the list of stock symbols you want to use for training and testing the neural network.
-
-Run the updateModels shell script to update the stock data and re-train the neural network on the updated data.
-
-Run the runimages shell script to preprocess the historical stock data and create the output images based on the most recent model and the most recent data.
-
-Run the createModel.py file to define the neural network architecture and train it on pre-proccessed data.
-I.e. python createModel.py learn AAPL
-
-(Optional) Run the smaModel.py file to define a simpler model based on SMAs and compare its performance to the neural network.
-I.e. python smaModel.py sma AAPL
-
-Disclaimer
-This program is for educational purposes only and should not be used for actual trading. The predictions made by the neural network may not be accurate and should not be relied upon for making financial decisions.
+This program is for educational purposes only. It shouldn't be used for actual trading. The predictions may not be accurate and shouldn't be relied upon for financial decisions.
