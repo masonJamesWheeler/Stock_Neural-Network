@@ -48,7 +48,7 @@ To use the program:
 
 1. Clone the repository.
 ```bash
-git clone <repository_link>
+git clone https://github.com/masonJamesWheeler/Stock_Neural-Network
 ```
 2. Install the dependencies.
 ```bash
